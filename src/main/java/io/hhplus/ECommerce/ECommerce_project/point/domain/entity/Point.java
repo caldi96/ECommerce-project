@@ -1,5 +1,7 @@
 package io.hhplus.ECommerce.ECommerce_project.point.domain.entity;
 
+import io.hhplus.ECommerce.ECommerce_project.common.exception.ErrorCode;
+import io.hhplus.ECommerce.ECommerce_project.common.exception.PointException;
 import io.hhplus.ECommerce.ECommerce_project.point.domain.enums.PointType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -119,20 +121,16 @@ public class Point {
      * 포인트 만료 처리
      */
     public void expire() {
-        if (this.pointType == PointType.USE) {
-            throw new IllegalStateException("사용된 포인트는 만료 처리할 수 없습니다.");
+        if (this.pointType == PointType.USE || this.isUsed) {
+            throw new PointException(ErrorCode.POINT_CANNOT_EXPIRE_USED_POINT);
         }
 
         if (this.isExpired) {
-            throw new IllegalStateException("이미 만료된 포인트입니다.");
-        }
-
-        if (this.isUsed) {
-            throw new IllegalStateException("이미 사용된 포인트는 만료 처리할 수 없습니다.");
+            throw new PointException(ErrorCode.POINT_ALREADY_EXPIRED);
         }
 
         if (this.expiresAt == null) {
-            throw new IllegalStateException("만료일이 없는 포인트입니다.");
+            throw new PointException(ErrorCode.POINT_NO_EXPIRATION_DATE);
         }
 
         this.isExpired = true;
@@ -143,19 +141,19 @@ public class Point {
      */
     public void markAsUsed() {
         if (this.pointType != PointType.CHARGE && this.pointType != PointType.REFUND) {
-            throw new IllegalStateException("충전 또는 환불 포인트만 사용 가능합니다.");
+            throw new PointException(ErrorCode.POINT_ONLY_CHARGE_OR_REFUND_CAN_BE_USED);
         }
 
         if (this.isUsed) {
-            throw new IllegalStateException("이미 사용된 포인트입니다.");
+            throw new PointException(ErrorCode.POINT_ALREADY_USED);
         }
 
         if (this.isExpired) {
-            throw new IllegalStateException("만료된 포인트는 사용할 수 없습니다.");
+            throw new PointException(ErrorCode.POINT_EXPIRED_CANNOT_USE);
         }
 
         if (this.expiresAt != null && LocalDateTime.now().isAfter(this.expiresAt)) {
-            throw new IllegalStateException("유효기간이 지난 포인트입니다.");
+            throw new PointException(ErrorCode.POINT_EXPIRATION_DATE_PASSED);
         }
 
         this.isUsed = true;
@@ -217,28 +215,28 @@ public class Point {
 
     private static void validateUserId(Long userId) {
         if (userId == null) {
-            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+            throw new PointException(ErrorCode.USER_ID_REQUIRED);
         }
     }
 
     private static void validateOrderId(Long orderId) {
         if (orderId == null) {
-            throw new IllegalArgumentException("주문 ID는 필수입니다.");
+            throw new PointException(ErrorCode.POINT_ORDER_ID_REQUIRED);
         }
     }
 
     private static void validateAmount(BigDecimal amount) {
         if (amount == null) {
-            throw new IllegalArgumentException("포인트 금액은 필수입니다.");
+            throw new PointException(ErrorCode.POINT_AMOUNT_REQUIRED);
         }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("포인트 금액은 0보다 커야 합니다.");
+            throw new PointException(ErrorCode.POINT_AMOUNT_INVALID);
         }
     }
 
     private static void validateDescription(String description) {
         if (description == null || description.trim().isEmpty()) {
-            throw new IllegalArgumentException("포인트 설명은 필수입니다.");
+            throw new PointException(ErrorCode.POINT_DESCRIPTION_REQUIRED);
         }
     }
 

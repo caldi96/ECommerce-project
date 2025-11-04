@@ -1,5 +1,7 @@
 package io.hhplus.ECommerce.ECommerce_project.payment.domain.entity;
 
+import io.hhplus.ECommerce.ECommerce_project.common.exception.ErrorCode;
+import io.hhplus.ECommerce.ECommerce_project.common.exception.PaymentException;
 import io.hhplus.ECommerce.ECommerce_project.payment.domain.enums.PaymentMethod;
 import io.hhplus.ECommerce.ECommerce_project.payment.domain.enums.PaymentStatus;
 import io.hhplus.ECommerce.ECommerce_project.payment.domain.enums.PaymentType;
@@ -39,7 +41,6 @@ public class Payment {
     /**
      * 새로운 결제 생성 (결제 시작)
      */
-    /*
     public static Payment createPayment(Long orderId, BigDecimal amount, PaymentMethod paymentMethod) {
         validateAmount(amount);
         validateOrderId(orderId);
@@ -59,12 +60,10 @@ public class Payment {
             null   // failedAt
         );
     }
-    */
 
     /**
      * 환불 생성
      */
-    /*
     public static Payment createRefund(Long orderId, BigDecimal amount, PaymentMethod paymentMethod) {
         validateAmount(amount);
         validateOrderId(orderId);
@@ -84,7 +83,6 @@ public class Payment {
             null
         );
     }
-    */
 
     // ===== 비즈니스 로직 메서드 =====
 
@@ -93,15 +91,15 @@ public class Payment {
      */
     public void complete() {
         if (this.paymentStatus == PaymentStatus.COMPLETED) {
-            throw new IllegalStateException("이미 완료된 결제입니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_ALREADY_COMPLETED);
         }
 
         if (this.paymentStatus == PaymentStatus.FAILED) {
-            throw new IllegalStateException("실패한 결제는 완료 처리할 수 없습니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_CANNOT_COMPLETE_FAILED);
         }
 
         if (this.paymentStatus == PaymentStatus.REFUNDED) {
-            throw new IllegalStateException("환불된 결제는 완료 처리할 수 없습니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_CANNOT_COMPLETE_REFUNDED);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -115,15 +113,15 @@ public class Payment {
      */
     public void fail(String reason) {
         if (this.paymentStatus == PaymentStatus.COMPLETED) {
-            throw new IllegalStateException("완료된 결제는 실패 처리할 수 없습니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_CANNOT_FAIL_COMPLETED);
         }
 
         if (this.paymentStatus == PaymentStatus.FAILED) {
-            throw new IllegalStateException("이미 실패한 결제입니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_ALREADY_FAILED);
         }
 
         if (reason == null || reason.trim().isEmpty()) {
-            throw new IllegalArgumentException("실패 사유는 필수입니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_FAILURE_REASON_REQUIRED);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -139,15 +137,15 @@ public class Payment {
     public void refund() {
         // 결제 타입이 PAYMENT인 경우에만 환불 가능
         if (this.paymentType != PaymentType.PAYMENT) {
-            throw new IllegalStateException("일반 결제만 환불 가능합니다.");
-        }
-
-        if (this.paymentStatus != PaymentStatus.COMPLETED) {
-            throw new IllegalStateException("완료된 결제만 환불 가능합니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_ONLY_PAYMENT_TYPE_CAN_REFUND);
         }
 
         if (this.paymentStatus == PaymentStatus.REFUNDED) {
-            throw new IllegalStateException("이미 환불된 결제입니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_ALREADY_REFUNDED);
+        }
+
+        if (this.paymentStatus != PaymentStatus.COMPLETED) {
+            throw new PaymentException(ErrorCode.PAYMENT_ONLY_COMPLETED_CAN_REFUND);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -197,16 +195,16 @@ public class Payment {
 
     private static void validateAmount(BigDecimal amount) {
         if (amount == null) {
-            throw new IllegalArgumentException("결제 금액은 필수입니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_AMOUNT_REQUIRED);
         }
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("결제 금액은 0보다 커야 합니다.");
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new PaymentException(ErrorCode.PAYMENT_AMOUNT_INVALID);
         }
     }
 
     private static void validateOrderId(Long orderId) {
         if (orderId == null) {
-            throw new IllegalArgumentException("주문 ID는 필수입니다.");
+            throw new PaymentException(ErrorCode.PAYMENT_ORDER_ID_REQUIRED);
         }
     }
 

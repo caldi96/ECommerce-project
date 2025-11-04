@@ -1,5 +1,7 @@
 package io.hhplus.ECommerce.ECommerce_project.order.domain.entity;
 
+import io.hhplus.ECommerce.ECommerce_project.common.exception.ErrorCode;
+import io.hhplus.ECommerce.ECommerce_project.common.exception.OrderException;
 import io.hhplus.ECommerce.ECommerce_project.order.domain.enums.OrderStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -31,7 +33,6 @@ public class Orders {
     private BigDecimal shippingFee;
     private OrderStatus status;
     private BigDecimal pointAmount;
-    private boolean isFreeShipping;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime paidAt;
@@ -56,12 +57,12 @@ public class Orders {
 
         // 할인 금액 검증 (null 가능)
         if (discountAmount != null && discountAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("할인 금액은 0 이상이어야 합니다.");
+            throw new OrderException(ErrorCode.ORDER_DISCOUNT_AMOUNT_INVALID);
         }
 
         // 포인트 금액 검증 (null 가능)
         if (pointAmount != null && pointAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("포인트 금액은 0 이상이어야 합니다.");
+            throw new OrderException(ErrorCode.ORDER_POINT_AMOUNT_INVALID);
         }
 
         // 최종 금액 계산
@@ -70,11 +71,10 @@ public class Orders {
         BigDecimal finalAmount = totalAmount.add(shippingFee).subtract(discount).subtract(point);
 
         if (finalAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("최종 결제 금액은 0 이상이어야 합니다.");
+            throw new OrderException(ErrorCode.ORDER_FINAL_AMOUNT_NEGATIVE);
         }
 
         LocalDateTime now = LocalDateTime.now();
-        boolean isFreeShipping = shippingFee.compareTo(BigDecimal.ZERO) == 0;
 
         return new Orders(
             null,  // id는 저장 시 생성
@@ -86,7 +86,6 @@ public class Orders {
             shippingFee,
             OrderStatus.PENDING,  // 초기 상태는 PENDING
             point,
-            isFreeShipping,
             now,   // createdAt
             now,   // updatedAt
             null,  // paidAt
@@ -101,7 +100,8 @@ public class Orders {
      */
     public void paid() {
         if (this.status != OrderStatus.PENDING) {
-            throw new IllegalStateException("대기 중인 주문만 결제할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_INVALID_STATUS_FOR_PAYMENT,
+                "대기 중인 주문만 결제할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -115,7 +115,8 @@ public class Orders {
      */
     public void cancel() {
         if (this.status != OrderStatus.PENDING) {
-            throw new IllegalStateException("대기 중인 주문만 취소할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_INVALID_STATUS_FOR_CANCEL,
+                "대기 중인 주문만 취소할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -125,11 +126,12 @@ public class Orders {
     }
 
     /**
-     * 결제 취소 처리 (결제 후)
+     * 결제 취소 처리 -> 주문 취소 (결제 후)
      */
     public void cancelAfterPaid() {
         if (this.status != OrderStatus.PAID) {
-            throw new IllegalStateException("결제 완료된 주문만 결제 취소할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_INVALID_STATUS_FOR_CANCEL,
+                "결제 완료된 주문만 결제 취소할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -139,11 +141,12 @@ public class Orders {
     }
 
     /**
-     * 주문 완료 처리 (배송 완료 등)
+     * 주문 완료 처리
      */
     public void complete() {
         if (this.status != OrderStatus.PAID) {
-            throw new IllegalStateException("결제 완료된 주문만 완료 처리할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_INVALID_STATUS_FOR_COMPLETE,
+                "결제 완료된 주문만 완료 처리할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -195,20 +198,27 @@ public class Orders {
         return this.status == OrderStatus.PAID;
     }
 
+    /**
+     * 무료 배송 여부
+     */
+    public boolean isFreeShipping() {
+        return this.shippingFee.compareTo(BigDecimal.ZERO) == 0;
+    }
+
     // ===== Validation 메서드 =====
 
     private static void validateUserId(Long userId) {
         if (userId == null) {
-            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+            throw new OrderException(ErrorCode.ORDER_USER_ID_REQUIRED);
         }
     }
 
     private static void validateAmount(BigDecimal amount, String fieldName) {
         if (amount == null) {
-            throw new IllegalArgumentException(fieldName + "은(는) 필수입니다.");
+            throw new OrderException(ErrorCode.ORDER_AMOUNT_REQUIRED, fieldName + "은(는) 필수입니다.");
         }
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException(fieldName + "은(는) 0 이상이어야 합니다.");
+            throw new OrderException(ErrorCode.ORDER_AMOUNT_INVALID, fieldName + "은(는) 0 이상이어야 합니다.");
         }
     }
 

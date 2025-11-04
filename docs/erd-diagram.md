@@ -49,7 +49,6 @@ Table orders {
     status varchar [not null, default: 'PENDING'] // PENDING, PAID, PAYMENT_FAILED, CANCELED
     coupon_id bigint [ref: > coupons.id]  // 사용된 쿠폰
     point_amount decimal(10,2) [default: 0]  // 사용된 포인트
-    is_free_shipping boolean [default: false]  // 무료배송 여부
     created_at timestamp [not null, default: `now()`]
     updated_at timestamp [not null, default: `now()`]
     paid_at timestamp

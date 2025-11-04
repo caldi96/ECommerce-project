@@ -1,5 +1,7 @@
 package io.hhplus.ECommerce.ECommerce_project.product.domain.entity;
 
+import io.hhplus.ECommerce.ECommerce_project.common.exception.ErrorCode;
+import io.hhplus.ECommerce.ECommerce_project.common.exception.ProductException;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,15 +16,15 @@ import java.time.LocalDateTime;
 public class Product {
 
     private Long id;
-    private String name;
-    private String description;
-    private BigDecimal price;
-    private int stock;
     // 나중에 JPA 연결 시
     // @ManyToOne(fetch = FetchType.LAZY)
     // @JoinColumn(name = "category_id")
     // private Category category;
     private Long categoryId;
+    private String name;
+    private String description;
+    private BigDecimal price;
+    private int stock;
     private boolean isActive;
     private boolean isSoldOut;
     private int viewCount;
@@ -51,35 +53,35 @@ public class Product {
         validateStock(stock);
 
         if (minOrderQuantity != null && minOrderQuantity < 1) {
-            throw new IllegalArgumentException("최소 주문량은 1 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_MIN_ORDER_QUANTITY_INVALID);
         }
 
         if (maxOrderQuantity != null && maxOrderQuantity < 1) {
-            throw new IllegalArgumentException("최대 주문량은 1 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_MAX_ORDER_QUANTITY_INVALID);
         }
 
         if (minOrderQuantity != null && maxOrderQuantity != null && minOrderQuantity > maxOrderQuantity) {
-            throw new IllegalArgumentException("최소 주문량은 최대 주문량보다 클 수 없습니다.");
+            throw new ProductException(ErrorCode.PRODUCT_MIN_ORDER_QUANTITY_EXCEEDS_MAX);
         }
 
         LocalDateTime now = LocalDateTime.now();
         boolean isSoldOut = stock == 0;
 
         return new Product(
-            null,  // id는 저장 시 생성
+            null,       // id는 저장 시 생성
+            categoryId,
             name,
             description,
             price,
             stock,
-            categoryId,
-            true,  // isActive (초기 상태는 활성)
+            true,       // isActive (초기 상태는 활성)
             isSoldOut,
-            0,     // viewCount
-            0,     // soldCount
+            0,          // viewCount
+            0,          // soldCount
             minOrderQuantity,
             maxOrderQuantity,
-            now,   // createdAt
-            now    // updatedAt
+            now,        // createdAt
+            now         // updatedAt
         );
     }
 
@@ -90,11 +92,12 @@ public class Product {
      */
     public void decreaseStock(int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("차감할 수량은 1 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_DECREASE_QUANTITY_INVALID);
         }
 
         if (this.stock < quantity) {
-            throw new IllegalStateException("재고가 부족합니다. 현재 재고: " + this.stock + ", 요청 수량: " + quantity);
+            throw new ProductException(ErrorCode.PRODUCT_OUT_OF_STOCK,
+                "재고가 부족합니다. 현재 재고: " + this.stock + ", 요청 수량: " + quantity);
         }
 
         this.stock -= quantity;
@@ -111,7 +114,7 @@ public class Product {
      */
     public void increaseStock(int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("증가할 수량은 1 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_INCREASE_QUANTITY_INVALID);
         }
 
         this.stock += quantity;
@@ -141,7 +144,7 @@ public class Product {
      */
     public void increaseSoldCount(int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("증가할 판매량은 1 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_INCREASE_SOLD_COUNT_INVALID);
         }
 
         this.soldCount += quantity;
@@ -153,11 +156,12 @@ public class Product {
      */
     public void decreaseSoldCount(int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("감소할 판매량은 1 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_DECREASE_SOLD_COUNT_INVALID);
         }
 
         if (this.soldCount < quantity) {
-            throw new IllegalStateException("판매량이 취소량보다 작습니다. 현재 판매량: " + this.soldCount + ", 취소량: " + quantity);
+            throw new ProductException(ErrorCode.PRODUCT_SOLD_COUNT_LESS_THAN_CANCEL,
+                "판매량이 취소량보다 작습니다. 현재 판매량: " + this.soldCount + ", 취소량: " + quantity);
         }
 
         this.soldCount -= quantity;
@@ -213,11 +217,11 @@ public class Product {
      */
     public void updateMinOrderQuantity(Integer minOrderQuantity) {
         if (minOrderQuantity != null && minOrderQuantity < 1) {
-            throw new IllegalArgumentException("최소 주문량은 1 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_MIN_ORDER_QUANTITY_INVALID);
         }
 
         if (minOrderQuantity != null && this.maxOrderQuantity != null && minOrderQuantity > this.maxOrderQuantity) {
-            throw new IllegalArgumentException("최소 주문량은 최대 주문량보다 클 수 없습니다.");
+            throw new ProductException(ErrorCode.PRODUCT_MIN_ORDER_QUANTITY_EXCEEDS_MAX);
         }
 
         this.minOrderQuantity = minOrderQuantity;
@@ -229,11 +233,11 @@ public class Product {
      */
     public void updateMaxOrderQuantity(Integer maxOrderQuantity) {
         if (maxOrderQuantity != null && maxOrderQuantity < 1) {
-            throw new IllegalArgumentException("최대 주문량은 1 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_MAX_ORDER_QUANTITY_INVALID);
         }
 
         if (maxOrderQuantity != null && this.minOrderQuantity != null && maxOrderQuantity < this.minOrderQuantity) {
-            throw new IllegalArgumentException("최대 주문량은 최소 주문량보다 작을 수 없습니다.");
+            throw new ProductException(ErrorCode.PRODUCT_MAX_ORDER_QUANTITY_LESS_THAN_MIN);
         }
 
         this.maxOrderQuantity = maxOrderQuantity;
@@ -245,7 +249,7 @@ public class Product {
      */
     public void activate() {
         if (this.isActive) {
-            throw new IllegalStateException("이미 활성화된 상품입니다.");
+            throw new ProductException(ErrorCode.PRODUCT_ALREADY_ACTIVE);
         }
 
         this.isActive = true;
@@ -257,7 +261,7 @@ public class Product {
      */
     public void deactivate() {
         if (!this.isActive) {
-            throw new IllegalStateException("이미 비활성화된 상품입니다.");
+            throw new ProductException(ErrorCode.PRODUCT_ALREADY_INACTIVE);
         }
 
         this.isActive = false;
@@ -269,7 +273,7 @@ public class Product {
      */
     public void markAsSoldOut() {
         if (this.isSoldOut) {
-            throw new IllegalStateException("이미 품절 상태입니다.");
+            throw new ProductException(ErrorCode.PRODUCT_ALREADY_SOLD_OUT);
         }
 
         this.isSoldOut = true;
@@ -281,11 +285,11 @@ public class Product {
      */
     public void markAsAvailable() {
         if (!this.isSoldOut) {
-            throw new IllegalStateException("이미 판매 가능 상태입니다.");
+            throw new ProductException(ErrorCode.PRODUCT_ALREADY_AVAILABLE);
         }
 
         if (this.stock == 0) {
-            throw new IllegalStateException("재고가 0인 상품은 판매 가능 상태로 변경할 수 없습니다.");
+            throw new ProductException(ErrorCode.PRODUCT_CANNOT_BE_AVAILABLE_WITH_ZERO_STOCK);
         }
 
         this.isSoldOut = false;
@@ -346,22 +350,22 @@ public class Product {
 
     private static void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("상품명은 필수입니다.");
+            throw new ProductException(ErrorCode.PRODUCT_NAME_REQUIRED);
         }
     }
 
     private static void validatePrice(BigDecimal price) {
         if (price == null) {
-            throw new IllegalArgumentException("가격은 필수입니다.");
+            throw new ProductException(ErrorCode.PRODUCT_PRICE_REQUIRED);
         }
         if (price.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("가격은 0 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_PRICE_INVALID);
         }
     }
 
     private static void validateStock(int stock) {
         if (stock < 0) {
-            throw new IllegalArgumentException("재고는 0 이상이어야 합니다.");
+            throw new ProductException(ErrorCode.PRODUCT_STOCK_INVALID);
         }
     }
 

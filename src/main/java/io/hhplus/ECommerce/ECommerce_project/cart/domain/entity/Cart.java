@@ -1,5 +1,7 @@
 package io.hhplus.ECommerce.ECommerce_project.cart.domain.entity;
 
+import io.hhplus.ECommerce.ECommerce_project.common.exception.CartException;
+import io.hhplus.ECommerce.ECommerce_project.common.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -63,7 +65,7 @@ public class Cart {
      */
     public void increaseQuantity(int amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("증가량은 1 이상이어야 합니다.");
+            throw new CartException(ErrorCode.CART_INCREASE_AMOUNT_INVALID);
         }
         this.quantity += amount;
         this.updatedAt = LocalDateTime.now();
@@ -74,7 +76,7 @@ public class Cart {
      */
     public void decreaseQuantity() {
         if (this.quantity <= 1) {
-            throw new IllegalStateException("수량은 1 미만이 될 수 없습니다. 삭제하려면 장바구니에서 제거하세요.");
+            throw new CartException(ErrorCode.CART_QUANTITY_CANNOT_BE_LESS_THAN_ONE);
         }
         this.quantity--;
         this.updatedAt = LocalDateTime.now();
@@ -85,10 +87,10 @@ public class Cart {
      */
     public void decreaseQuantity(int amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("감소량은 1 이상이어야 합니다.");
+            throw new CartException(ErrorCode.CART_DECREASE_AMOUNT_INVALID);
         }
         if (this.quantity - amount < 1) {
-            throw new IllegalStateException("수량은 1 미만이 될 수 없습니다. 삭제하려면 장바구니에서 제거하세요.");
+            throw new CartException(ErrorCode.CART_QUANTITY_CANNOT_BE_LESS_THAN_ONE);
         }
         this.quantity -= amount;
         this.updatedAt = LocalDateTime.now();
@@ -123,19 +125,19 @@ public class Cart {
 
     private static void validateUserId(Long userId) {
         if (userId == null) {
-            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+            throw new CartException(ErrorCode.USER_ID_REQUIRED);
         }
     }
 
     private static void validateProductId(Long productId) {
         if (productId == null) {
-            throw new IllegalArgumentException("상품 ID는 필수입니다.");
+            throw new CartException(ErrorCode.CART_PRODUCT_ID_REQUIRED);
         }
     }
 
     private static void validateQuantity(int quantity) {
         if (quantity < 1) {
-            throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
+            throw new CartException(ErrorCode.CART_QUANTITY_INVALID);
         }
     }
 

@@ -1,6 +1,9 @@
 package io.hhplus.ECommerce.ECommerce_project.order.domain.enums;
 
 public enum OrderItemStatus {
+    // 주문 대기 (초기 상태)
+    ORDER_PENDING("주문대기"),
+
     // 주문 완료
     ORDER_COMPLETED("주문완료"),
 

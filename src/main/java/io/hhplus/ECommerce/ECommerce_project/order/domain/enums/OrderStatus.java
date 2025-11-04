@@ -4,6 +4,7 @@ public enum OrderStatus {
 
     PENDING("주문중"),
     PAID("결제완료"),
+    COMPLETED("주문완료"),
     PAYMENT_FAILED("결제실패"),
     CANCELED("주문취소");
 

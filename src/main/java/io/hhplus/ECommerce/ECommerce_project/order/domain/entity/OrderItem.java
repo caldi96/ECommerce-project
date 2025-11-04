@@ -1,5 +1,7 @@
 package io.hhplus.ECommerce.ECommerce_project.order.domain.entity;
 
+import io.hhplus.ECommerce.ECommerce_project.common.exception.ErrorCode;
+import io.hhplus.ECommerce.ECommerce_project.common.exception.OrderException;
 import io.hhplus.ECommerce.ECommerce_project.order.domain.enums.OrderItemStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -84,7 +86,8 @@ public class OrderItem {
      */
     public void complete() {
         if (this.status != OrderItemStatus.ORDER_PENDING) {
-            throw new IllegalStateException("대기 중인 주문 항목만 완료 처리할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_ITEM_INVALID_STATUS_FOR_COMPLETE,
+                "대기 중인 주문 항목만 완료 처리할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -97,7 +100,8 @@ public class OrderItem {
      */
     public void cancel() {
         if (this.status != OrderItemStatus.ORDER_PENDING) {
-            throw new IllegalStateException("대기 중인 주문 항목만 취소할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_ITEM_INVALID_STATUS_FOR_CANCEL,
+                "대기 중인 주문 항목만 취소할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -111,7 +115,8 @@ public class OrderItem {
      */
     public void cancelAfterComplete() {
         if (this.status != OrderItemStatus.ORDER_COMPLETED) {
-            throw new IllegalStateException("완료된 주문 항목만 취소할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_ITEM_INVALID_STATUS_FOR_CANCEL,
+                "완료된 주문 항목만 취소할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -125,7 +130,8 @@ public class OrderItem {
      */
     public void returnItem() {
         if (this.status != OrderItemStatus.ORDER_COMPLETED && this.status != OrderItemStatus.PURCHASE_CONFIRMED) {
-            throw new IllegalStateException("완료 또는 구매 확정된 주문 항목만 반품할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_ITEM_INVALID_STATUS_FOR_RETURN,
+                "완료 또는 구매 확정된 주문 항목만 반품할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -139,7 +145,8 @@ public class OrderItem {
      */
     public void refund() {
         if (this.status != OrderItemStatus.ORDER_CANCELED && this.status != OrderItemStatus.ORDER_RETURNED) {
-            throw new IllegalStateException("취소 또는 반품된 주문 항목만 환불할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_ITEM_INVALID_STATUS_FOR_REFUND,
+                "취소 또는 반품된 주문 항목만 환불할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -153,7 +160,8 @@ public class OrderItem {
      */
     public void confirmPurchase() {
         if (this.status != OrderItemStatus.ORDER_COMPLETED) {
-            throw new IllegalStateException("완료된 주문 항목만 구매 확정할 수 있습니다. 현재 상태: " + this.status);
+            throw new OrderException(ErrorCode.ORDER_ITEM_INVALID_STATUS_FOR_CONFIRM,
+                "완료된 주문 항목만 구매 확정할 수 있습니다. 현재 상태: " + this.status);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -237,34 +245,34 @@ public class OrderItem {
 
     private static void validateOrderId(Long orderId) {
         if (orderId == null) {
-            throw new IllegalArgumentException("주문 ID는 필수입니다.");
+            throw new OrderException(ErrorCode.ORDER_ITEM_ORDER_ID_REQUIRED);
         }
     }
 
     private static void validateProductId(Long productId) {
         if (productId == null) {
-            throw new IllegalArgumentException("상품 ID는 필수입니다.");
+            throw new OrderException(ErrorCode.ORDER_ITEM_PRODUCT_ID_REQUIRED);
         }
     }
 
     private static void validateProductName(String productName) {
         if (productName == null || productName.trim().isEmpty()) {
-            throw new IllegalArgumentException("상품명은 필수입니다.");
+            throw new OrderException(ErrorCode.ORDER_ITEM_PRODUCT_NAME_REQUIRED);
         }
     }
 
     private static void validateQuantity(int quantity) {
         if (quantity < 1) {
-            throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
+            throw new OrderException(ErrorCode.ORDER_ITEM_QUANTITY_INVALID);
         }
     }
 
     private static void validateUnitPrice(BigDecimal unitPrice) {
         if (unitPrice == null) {
-            throw new IllegalArgumentException("상품 가격은 필수입니다.");
+            throw new OrderException(ErrorCode.ORDER_ITEM_UNIT_PRICE_REQUIRED);
         }
         if (unitPrice.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("상품 가격은 0 이상이어야 합니다.");
+            throw new OrderException(ErrorCode.ORDER_ITEM_UNIT_PRICE_INVALID);
         }
     }
 
