@@ -2,18 +2,20 @@ package io.hhplus.ECommerce.ECommerce_project.cart.infrastructure;
 
 import io.hhplus.ECommerce.ECommerce_project.cart.domain.entity.Cart;
 import io.hhplus.ECommerce.ECommerce_project.cart.domain.repository.CartRepository;
-import io.hhplus.ECommerce.ECommerce_project.category.domain.entity.Category;
 import io.hhplus.ECommerce.ECommerce_project.common.SnowflakeIdGenerator;
-import io.hhplus.ECommerce.ECommerce_project.product.domain.entity.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @RequiredArgsConstructor
 public class CartMemoryRepository implements CartRepository {
-    private final Map<Long, Cart> cartMap = new HashMap<>();
+    private final Map<Long, Cart> cartMap = new ConcurrentHashMap<>();
     private final SnowflakeIdGenerator idGenerator;
 
     @Override
@@ -29,6 +31,21 @@ public class CartMemoryRepository implements CartRepository {
     @Override
     public Optional<Cart> findById(Long id) {
         return Optional.ofNullable(cartMap.get(id));
+    }
+
+    @Override
+    public List<Cart> findByUserId(Long userId) {
+        return cartMap.values().stream()
+                .filter(cart -> cart.isSameUser(userId))
+                .toList();
+    }
+
+    @Override
+    public Optional<Cart> findByUserIdAndProductId(Long userId, Long productId) {
+        return cartMap.values().stream()
+                .filter(cart -> cart.isSameUser(userId)
+                        && cart.isSameProduct(productId))
+                .findFirst();
     }
 
     @Override

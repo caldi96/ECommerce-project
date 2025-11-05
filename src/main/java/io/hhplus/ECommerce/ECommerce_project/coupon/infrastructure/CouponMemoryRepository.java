@@ -9,11 +9,12 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @RequiredArgsConstructor
 public class CouponMemoryRepository implements CouponRepository {
-    private final Map<Long, Coupon> couponMap = new HashMap<>();
+    private final Map<Long, Coupon> couponMap = new ConcurrentHashMap<>();
     private final SnowflakeIdGenerator idGenerator;
 
     @Override

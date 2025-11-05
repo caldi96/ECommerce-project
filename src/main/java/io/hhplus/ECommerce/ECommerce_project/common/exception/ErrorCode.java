@@ -56,7 +56,7 @@ public enum ErrorCode {
     POINT_ALREADY_USED("이미 사용된 포인트입니다.", HttpStatus.CONFLICT),
     POINT_EXPIRED_CANNOT_USE("만료된 포인트는 사용할 수 없습니다.", HttpStatus.CONFLICT),
     POINT_EXPIRATION_DATE_PASSED("유효기간이 지난 포인트입니다.", HttpStatus.CONFLICT),
-    INSUFFICIENT_POINT("포인트가 부족합니다.", HttpStatus.BAD_REQUEST),
+    POINT_INSUFFICIENT_POINT("포인트가 부족합니다.", HttpStatus.BAD_REQUEST),
 
     // ===== Cart =====
     CART_NOT_FOUND("장바구니 아이템을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
@@ -65,6 +65,8 @@ public enum ErrorCode {
     CART_QUANTITY_CANNOT_BE_LESS_THAN_ONE("수량은 1 미만이 될 수 없습니다. 삭제하려면 장바구니에서 제거하세요.", HttpStatus.CONFLICT),
     CART_INCREASE_AMOUNT_INVALID("증가량은 1 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
     CART_DECREASE_AMOUNT_INVALID("감소량은 1 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
+    CART_PRODUCT_CANNOT_BE_ADDED_TO_CART("해당 상품을 장바구니에 담을 수 없습니다.", HttpStatus.CONFLICT),
+    CART_ACCESS_DENIED("현재 user의 장바구니 항목과 다릅니다.", HttpStatus.CONFLICT),
 
     // ===== Order =====
     ORDER_NOT_FOUND("주문을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
@@ -74,6 +76,8 @@ public enum ErrorCode {
     ORDER_DISCOUNT_AMOUNT_INVALID("할인 금액은 0 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
     ORDER_POINT_AMOUNT_INVALID("포인트 사용 금액은 0 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
     ORDER_FINAL_AMOUNT_NEGATIVE("최종 결제 금액은 0 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
+    ORDER_TOTAL_AMOUNT_REQUIRED("주문 총 금액은 필수입니다.", HttpStatus.BAD_REQUEST),
+    ORDER_PRODUCT_CANNOT_BE_ORDERED("주문 불가능한 상품입니다", HttpStatus.CONFLICT),
     ORDER_INVALID_STATUS_FOR_PAYMENT("결제 가능한 상태가 아닙니다.", HttpStatus.CONFLICT),
     ORDER_INVALID_STATUS_FOR_CANCEL("취소 가능한 상태가 아닙니다.", HttpStatus.CONFLICT),
     ORDER_INVALID_STATUS_FOR_COMPLETE("완료 가능한 상태가 아닙니다.", HttpStatus.CONFLICT),

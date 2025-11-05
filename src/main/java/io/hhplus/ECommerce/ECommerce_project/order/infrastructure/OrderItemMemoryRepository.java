@@ -8,11 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @RequiredArgsConstructor
 public class OrderItemMemoryRepository implements OrderItemRepository {
-    private final Map<Long, OrderItem> orderItemMap = new HashMap<>();
+    private final Map<Long, OrderItem> orderItemMap = new ConcurrentHashMap<>();
     private final SnowflakeIdGenerator idGenerator;
 
     @Override

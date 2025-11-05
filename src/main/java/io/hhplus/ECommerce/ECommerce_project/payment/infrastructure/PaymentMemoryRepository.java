@@ -7,11 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @RequiredArgsConstructor
 public class PaymentMemoryRepository implements PaymentRepository {
-    private final Map<Long, Payment> paymentMap = new HashMap<>();
+    private final Map<Long, Payment> paymentMap = new ConcurrentHashMap<>();
     private final SnowflakeIdGenerator idGenerator;
 
     @Override

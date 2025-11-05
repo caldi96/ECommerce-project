@@ -7,11 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @RequiredArgsConstructor
 public class UserMemoryRepository implements UserRepository {
-    private final Map<Long, User> userMap = new HashMap<>();
+    private final Map<Long, User> userMap = new ConcurrentHashMap<>();
     private final SnowflakeIdGenerator idGenerator;
 
     @Override

@@ -7,11 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @RequiredArgsConstructor
 public class CategoryMemoryRepository implements CategoryRepository {
-    private final Map<Long, Category> categoryMap = new HashMap<>();
+    private final Map<Long, Category> categoryMap = new ConcurrentHashMap<>();
     private final SnowflakeIdGenerator idGenerator;
 
     @Override

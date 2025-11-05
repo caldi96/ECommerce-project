@@ -9,11 +9,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @RequiredArgsConstructor
 public class UserCouponMemoryRepository implements UserCouponRepository {
-    private final Map<Long, UserCoupon> userCouponMap = new HashMap<>();
+    private final Map<Long, UserCoupon> userCouponMap = new ConcurrentHashMap<>();
     private final SnowflakeIdGenerator idGenerator;
 
     @Override
@@ -29,6 +30,14 @@ public class UserCouponMemoryRepository implements UserCouponRepository {
     @Override
     public Optional<UserCoupon> findById(Long id) {
         return Optional.ofNullable(userCouponMap.get(id));
+    }
+
+    @Override
+    public Optional<UserCoupon> findByUserIdAndCouponId(Long userId, Long couponId) {
+        return userCouponMap.values().stream()
+                .filter(userCoupon -> Objects.equals(userCoupon.getUserId(), userId)
+                        && Objects.equals(userCoupon.getCouponId(), couponId))
+                .findFirst();
     }
 
     @Override

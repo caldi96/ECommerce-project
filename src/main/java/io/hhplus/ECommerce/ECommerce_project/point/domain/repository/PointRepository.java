@@ -13,5 +13,7 @@ public interface PointRepository {
 
     List<Point> findAll();
 
+    List<Point> findAvailablePointsByUserId(Long userId);
+
     void deleteById(Long id);
 }

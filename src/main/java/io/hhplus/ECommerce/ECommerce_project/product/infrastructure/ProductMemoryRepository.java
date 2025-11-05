@@ -39,6 +39,15 @@ public class ProductMemoryRepository implements ProductRepository {
     }
 
     @Override
+    public List<Product> findAllById(List<Long> ids) {
+        return ids.stream()
+                .map(productMap::get)
+                .filter(Objects::nonNull)
+                .filter(p -> p.getDeletedAt() == null)  // 삭제되지 않은 상품만 반환
+                .toList();
+    }
+
+    @Override
     public void deleteById(Long id) {
         productMap.remove(id);
     }

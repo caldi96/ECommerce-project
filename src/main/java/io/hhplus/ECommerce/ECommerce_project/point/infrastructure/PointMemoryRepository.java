@@ -7,11 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @RequiredArgsConstructor
 public class PointMemoryRepository implements PointRepository {
-    private final Map<Long, Point> pointMap = new HashMap<>();
+    private final Map<Long, Point> pointMap = new ConcurrentHashMap<>();
     private final SnowflakeIdGenerator idGenerator;
 
     @Override
@@ -32,6 +33,15 @@ public class PointMemoryRepository implements PointRepository {
     @Override
     public List<Point> findAll() {
         return new ArrayList<>(pointMap.values());
+    }
+
+    @Override
+    public List<Point> findAvailablePointsByUserId(Long userId) {
+        return pointMap.values().stream()
+            .filter(point -> Objects.equals(point.getUserId(), userId))
+            .filter(Point::isAvailable)  // 사용 가능한 포인트만
+            .sorted(Comparator.comparing(Point::getCreatedAt))  // 생성일 기준 오름차순 정렬 (선입선출)
+            .toList();
     }
 
     @Override

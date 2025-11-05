@@ -11,6 +11,10 @@ public interface CartRepository {
 
     Optional<Cart> findById(Long id);
 
+    List<Cart> findByUserId(Long userId);
+
+    Optional<Cart> findByUserIdAndProductId(Long userId, Long productId);
+
     List<Cart> findAll();
 
     void deleteById(Long id);
