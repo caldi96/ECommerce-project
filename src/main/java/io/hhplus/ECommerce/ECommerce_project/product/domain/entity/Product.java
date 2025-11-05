@@ -26,13 +26,14 @@ public class Product {
     private BigDecimal price;
     private int stock;
     private boolean isActive;
-    private boolean isSoldOut;
+    private boolean isOutOfStock;
     private int viewCount;
     private int soldCount;
     private Integer minOrderQuantity;
     private Integer maxOrderQuantity;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;  // 논리적 삭제용
 
     // ===== 정적 팩토리 메서드 =====
 
@@ -41,10 +42,10 @@ public class Product {
      */
     public static Product createProduct(
         String name,
+        Long categoryId,
         String description,
         BigDecimal price,
         int stock,
-        Long categoryId,
         Integer minOrderQuantity,
         Integer maxOrderQuantity
     ) {
@@ -81,9 +82,11 @@ public class Product {
             minOrderQuantity,
             maxOrderQuantity,
             now,        // createdAt
-            now         // updatedAt
+            now,        // updatedAt
+            null        // deletedAt (삭제되지 않음)
         );
     }
+
 
     // ===== 비즈니스 로직 메서드 =====
 
@@ -105,7 +108,7 @@ public class Product {
 
         // 재고가 0이 되면 자동으로 품절 처리
         if (this.stock == 0) {
-            this.isSoldOut = true;
+            this.isOutOfStock = true;
         }
     }
 
@@ -121,8 +124,8 @@ public class Product {
         this.updatedAt = LocalDateTime.now();
 
         // 재고가 증가하면 품절 상태 해제
-        if (this.stock > 0 && this.isSoldOut) {
-            this.isSoldOut = false;
+        if (this.stock > 0 && this.isOutOfStock) {
+            this.isOutOfStock = false;
         }
     }
 
@@ -136,7 +139,7 @@ public class Product {
         this.updatedAt = LocalDateTime.now();
 
         // 재고에 따라 품절 상태 자동 설정
-        this.isSoldOut = (stock == 0);
+        this.isOutOfStock = (stock == 0);
     }
 
     /**
@@ -271,20 +274,20 @@ public class Product {
     /**
      * 품절 처리 (수동)
      */
-    public void markAsSoldOut() {
-        if (this.isSoldOut) {
+    public void outOfStock() {
+        if (this.isOutOfStock) {
             throw new ProductException(ErrorCode.PRODUCT_ALREADY_SOLD_OUT);
         }
 
-        this.isSoldOut = true;
+        this.isOutOfStock = true;
         this.updatedAt = LocalDateTime.now();
     }
 
     /**
      * 품절 해제 (수동)
      */
-    public void markAsAvailable() {
-        if (!this.isSoldOut) {
+    public void backInStock() {
+        if (!this.isOutOfStock) {
             throw new ProductException(ErrorCode.PRODUCT_ALREADY_AVAILABLE);
         }
 
@@ -292,8 +295,22 @@ public class Product {
             throw new ProductException(ErrorCode.PRODUCT_CANNOT_BE_AVAILABLE_WITH_ZERO_STOCK);
         }
 
-        this.isSoldOut = false;
+        this.isOutOfStock = false;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 상품 삭제 (논리적 삭제)
+     */
+    public void delete() {
+        if (this.deletedAt != null) {
+            throw new ProductException(ErrorCode.PRODUCT_ALREADY_DELETED);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        this.deletedAt = now;
+        this.isActive = false;  // 삭제 시 비활성화도 함께
+        this.updatedAt = now;
     }
 
     // ===== 상태 확인 메서드 =====
@@ -306,7 +323,7 @@ public class Product {
             return false;  // 비활성 상품
         }
 
-        if (this.isSoldOut) {
+        if (this.isOutOfStock) {
             return false;  // 품절
         }
 
@@ -343,7 +360,7 @@ public class Product {
      * 품절 여부
      */
     public boolean isSoldOutProduct() {
-        return this.isSoldOut;
+        return this.isOutOfStock;
     }
 
     // ===== Validation 메서드 =====

@@ -1,8 +1,8 @@
-package io.hhplus.ECommerce.ECommerce_project.product.usecase;
+package io.hhplus.ECommerce.ECommerce_project.product.application;
 
 import io.hhplus.ECommerce.ECommerce_project.product.domain.entity.Product;
 import io.hhplus.ECommerce.ECommerce_project.product.domain.repository.ProductRepository;
-import io.hhplus.ECommerce.ECommerce_project.product.usecase.command.CreateProductCommand;
+import io.hhplus.ECommerce.ECommerce_project.product.application.command.CreateProductCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +18,10 @@ public class CreateProductUseCase {
         // 1. 도메인 생성
         Product product = Product.createProduct(
                 command.name(),
+                command.categoryId(),
                 command.description(),
                 command.price(),
                 command.stock(),
-                command.categoryId(),
                 command.minOrderQuantity(),
                 command.maxOrderQuantity()
         );

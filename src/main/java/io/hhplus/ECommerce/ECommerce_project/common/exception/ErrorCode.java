@@ -41,6 +41,7 @@ public enum ErrorCode {
     PRODUCT_SOLD_COUNT_LESS_THAN_CANCEL("판매량이 취소량보다 작습니다.", HttpStatus.CONFLICT),
     PRODUCT_DECREASE_SOLD_COUNT_INVALID("감소할 판매량은 1 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
     PRODUCT_INCREASE_SOLD_COUNT_INVALID("증가할 판매량은 1 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
+    PRODUCT_ALREADY_DELETED("이미 삭제된 상품입니다.", HttpStatus.CONFLICT),
 
     // ===== Point =====
     POINT_NOT_FOUND("포인트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),

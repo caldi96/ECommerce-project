@@ -31,6 +31,7 @@ Table products {
     max_order_quantity int  // 1인당 최대 구매 수량
     created_at timestamp [not null, default: `now()`]
     updated_at timestamp [not null, default: `now()`]
+    deleted_at timestamp
     indexes {
         (category_id)
         (is_active)
